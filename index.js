@@ -2,7 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const app = express();
 const cors = require("cors");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const port = process.env.PORT || 4000;
 
 //middleware
@@ -25,6 +25,9 @@ async function run() {
     const userCollection = client.db("task-pulse").collection("users");
     const taskCollection = client.db("task-pulse").collection("tasks");
 
+    app.get("/", async (req, res) => {
+      res.send("ff");
+    });
     //add user
     app.post("/users", async (req, res) => {
       const user = req.body;
@@ -44,6 +47,30 @@ async function run() {
     app.post("/tasks", async (req, res) => {
       const data = req.body;
       const result = await taskCollection.insertOne(data);
+      res.send(result);
+    });
+
+    //tasks by email
+    app.get("/tasks/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email };
+      const result = await taskCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    //single task
+    app.get("/task/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await taskCollection.findOne(query);
+      res.send(result);
+    });
+
+    //delete task
+    app.delete("/tasks/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await taskCollection.deleteOne(query);
       res.send(result);
     });
   } finally {
